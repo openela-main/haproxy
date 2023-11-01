@@ -1,0 +1,25 @@
+From eaf1d768085a924a5322cfc77439ba5a4945bbae Mon Sep 17 00:00:00 2001
+From: Ryan O'Hara <rohara@redhat.com>
+Date: Thu, 14 Oct 2021 14:08:39 -0500
+Subject: [PATCH] Fix short HTTP responses to client
+
+---
+ src/raw_sock.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/raw_sock.c b/src/raw_sock.c
+index ad0210105..fbf20ae35 100644
+--- a/src/raw_sock.c
++++ b/src/raw_sock.c
+@@ -302,7 +302,7 @@ static int raw_sock_to_buf(struct connection *conn, struct buffer *buf, int coun
+ 		if (ret > 0) {
+ 			buf->i += ret;
+ 			done += ret;
+-			if (ret < try) {
++			if (0 && ret < try) {
+ 				/* unfortunately, on level-triggered events, POLL_HUP
+ 				 * is generally delivered AFTER the system buffer is
+ 				 * empty, unless the poller supports POLL_RDHUP. If
+-- 
+2.31.1
+

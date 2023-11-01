@@ -1,0 +1,45 @@
+From 58b3d8676bbef52bc76dd79ecfcf74582c34ec97 Mon Sep 17 00:00:00 2001
+From: William Lallemand <wlallemand@haproxy.org>
+Date: Thu, 17 Dec 2020 18:48:06 +0100
+Subject: [PATCH] BUG/MEDIUM: mworker: fix again copy_argv()
+
+When backporting patch df6c5a8 ("BUG/MEDIUM: mworker: fix the copy of
+options in copy_argv()") part of the patch was removed by mistake.
+Letting the bug #644 unfixed.
+
+This patch fixes the problem by reintroducing the missing part.
+
+1.8 only, no backport needed.
+---
+ src/haproxy.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/src/haproxy.c b/src/haproxy.c
+index 5ddf4d05..3947505b 100644
+--- a/src/haproxy.c
++++ b/src/haproxy.c
+@@ -1328,6 +1328,21 @@ static char **copy_argv(int argc, char **argv)
+ 						}
+ 						break;
+ 
++					case 'C':
++					case 'n':
++					case 'm':
++					case 'N':
++					case 'L':
++					case 'f':
++					case 'p':
++						/* these options have only 1 parameter which must be copied and can start with a '-' */
++						*newargv++ = *argv++;
++						argc--;
++						if (argc == 0)
++							goto error;
++						*newargv++ = *argv++;
++						argc--;
++						break;
+ 					default:
+ 						/* for other options just copy them without parameters, this is also done
+ 						 * for options like "--foo", but this  will fail in the argument parser.
+-- 
+2.26.2
+
