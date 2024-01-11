@@ -7,8 +7,8 @@
 %global _hardened_build 1
 
 Name:           haproxy
-Version:        2.4.17
-Release:        6%{?dist}
+Version:        2.4.22
+Release:        1%{?dist}
 Summary:        HAProxy reverse proxy for high availability environments
 
 License:        GPLv2+
@@ -21,9 +21,6 @@ Source3:        %{name}.logrotate
 Source4:        %{name}.sysconfig
 Source5:        %{name}.sysusers
 Source6:        halog.1
-
-Patch0: bz2161140-refuse-response-end-stream-flag.patch
-Patch1: bz2169510-reject-empty-http-header-fields.patch
 
 BuildRequires:  gcc
 BuildRequires:  lua-devel
@@ -53,8 +50,6 @@ availability environments. Indeed, it can:
 
 %prep
 %setup -q
-%patch0 -p1
-%patch1 -p1
 
 %build
 regparm_opts=
@@ -137,6 +132,12 @@ done
 %{_sysusersdir}/%{name}.conf
 
 %changelog
+* Tue Jun 06 2023 Ryan O'Hara <rohara@redhat.com> - 2.4.22-1
+- Update to 2.4.22 (#2196530)
+
+* Tue May 02 2023 Ryan O'Hara <rohara@redhat.com> - 2.4.17-7
+- Fix uninitizalized resevered bytes (CVE-2023-0836, #2180861)
+
 * Mon Feb 27 2023 Ryan O'Hara <rohara@redhat.com> - 2.4.17-6
 - Reject empty http header field names (CVE-2023-25725, #2169510)
 
