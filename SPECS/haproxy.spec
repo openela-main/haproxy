@@ -8,7 +8,7 @@
 
 Name:           haproxy
 Version:        2.4.22
-Release:        1%{?dist}
+Release:        3%{?dist}
 Summary:        HAProxy reverse proxy for high availability environments
 
 License:        GPLv2+
@@ -21,6 +21,14 @@ Source3:        %{name}.logrotate
 Source4:        %{name}.sysconfig
 Source5:        %{name}.sysusers
 Source6:        halog.1
+
+Patch0:	RHEL-7736_http-reject-empty-content-length-header.patch
+Patch1: RHEL-18169_h1-reject-special-char-URI-path-component.patch
+Patch2: RHEL-18169_h2-pass-accept-invalid-http-request-request-parser.patch
+Patch3: RHEL-18169_h2-reject-special-char-from-pseudo-path-header.patch
+Patch4: RHEL-18169_http-add-new-function-http_path_has_forbidden_char.patch
+Patch5: RHEL-18169_ist-add-new-function-ist_find_range.patch
+Patch6: RHEL-18169_regtest-add-accept-invalid-http-request.patch
 
 BuildRequires:  gcc
 BuildRequires:  lua-devel
@@ -50,6 +58,13 @@ availability environments. Indeed, it can:
 
 %prep
 %setup -q
+%patch -P0 -p1
+%patch -P1 -p1
+%patch -P2 -p1
+%patch -P3 -p1
+%patch -P4 -p1
+%patch -P5 -p1
+%patch -P6 -p1
 
 %build
 regparm_opts=
@@ -132,6 +147,12 @@ done
 %{_sysusersdir}/%{name}.conf
 
 %changelog
+* Tue Jan 23 2024 Ryan O'Hara <rohara@redhat.com> - 2.4.22-3
+- Reject "#" as part of URI path component (CVE-2023-45539, RHEL-18169)
+
+* Wed Jan 17 2024 Ryan O'Hara <rohara@redhat.com> - 2.4.22-2
+- Reject any empty content-length header value (CVE-2023-40225, RHEL-7736)
+
 * Tue Jun 06 2023 Ryan O'Hara <rohara@redhat.com> - 2.4.22-1
 - Update to 2.4.22 (#2196530)
 
