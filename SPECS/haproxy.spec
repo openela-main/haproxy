@@ -8,7 +8,7 @@
 
 Name:           haproxy
 Version:        1.8.27
-Release:        5%{?dist}
+Release:        5%{?dist}.1
 Summary:        HAProxy reverse proxy for high availability environments
 
 Group:          System Environment/Daemons
@@ -24,6 +24,14 @@ Source5:        halog.1
 
 Patch0:		rhbz1838319-mworker-fix-again-copy_argv.patch
 Patch1:		rhbz1941446-fix-short-http-responses.patch
+Patch2:		CVE-2023-45539-reject-pound-char-URI-component.patch
+Patch3:		CVE-2023-45539-regtest-verify-pound-char-URI.patch
+Patch4:		CVE-2023-45539-doc-clarify-URL-fragment-handling.patch
+Patch5:		CVE-2023-45539-add-ist_find_range-function.patch
+Patch6:		CVE-2023-45539-add-istend-function.patch
+Patch7:		CVE-2023-45539-add-http_path_forbidden_char-function.patch
+Patch8:		CVE-2023-45539-pass-accept-invalid-http-request-parser.patch
+Patch9:		CVE-2023-45539-reject-chars-from-path-pseudo-header.patch
 
 BuildRequires:  lua-devel
 BuildRequires:  pcre-devel
@@ -55,6 +63,14 @@ availability environments. Indeed, it can:
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
+%patch3 -p1
+%patch4 -p1
+%patch5 -p1
+%patch6 -p1
+%patch7 -p1
+%patch8 -p1
+%patch9 -p1
 
 %build
 regparm_opts=
@@ -142,6 +158,9 @@ exit 0
 %{_mandir}/man1/*
 
 %changelog
+* Thu Sep 05 2024 Ryan O'Hara <rohara@redhat.com> - 1.8.27-5.1
+- Reject "#" as part of URI path component (CVE-2023-45539, RHEL-18168)
+
 * Fri Jun 03 2022 Ryan O'Hara <rohara@redhat.com> - 1.8.27-5
 - Add configuration directory and update systemd unit file (#1943869)
 
