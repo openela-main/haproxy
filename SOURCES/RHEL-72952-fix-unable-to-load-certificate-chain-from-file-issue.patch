@@ -1,0 +1,37 @@
+From d03501c1bab66283f143ff8629db7d7f62d3f4ad Mon Sep 17 00:00:00 2001
+From: William Lallemand <wlallemand@haproxy.com>
+Date: Mon, 2 Dec 2024 12:07:29 +0100
+Subject: [PATCH] BUG/MINOR: ssl: can't load a separated key file with openssl
+ > 3.0
+
+ssl_sock_load_pem_into_ckch() tries to load a PrivateKey with
+PEM_read_bio_PrivateKey in the PEM file. However the key might be in
+another file, and this might fill the error queue. In previous version
+of OpenSSL it wasn't a problem because the error was a
+PEM_R_NO_START_LINE which was ignored after, but some new versions
+(3.0.13 from ubuntu or newer versions) emits another error
+(error:1E08010C:DECODER routines::unsupported).
+
+The problem is fixed by clearing the OpenSSL error stack after trying to
+load optionnal content (Private key or DH).
+
+This is a fix for version 2.4 only, version 2.6 does not have this
+problem because c76c3c4e59c8 ("MEDIUM: ssl: Replace all DH objects by
+EVP_PKEY on OpenSSLv3 (via HASSL_DH type)") added a ERR_clear_error()
+but it should have been a separated bugfix. Should fix issue #2791.
+---
+ src/ssl_ckch.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/ssl_ckch.c b/src/ssl_ckch.c
+index 3b0f72c65edb3..0b7fd7938ff2c 100644
+--- a/src/ssl_ckch.c
++++ b/src/ssl_ckch.c
+@@ -529,6 +529,7 @@ int ssl_sock_load_pem_into_ckch(const char *path, char *buf, struct cert_key_and
+ 	dh = PEM_read_bio_DHparams(in, NULL, NULL, NULL);
+ 	/* no need to return an error there, dh is not mandatory */
+ #endif
++	ERR_clear_error();
+ 
+ 	/* Seek back to beginning of file */
+ 	if (BIO_reset(in) == -1) {
