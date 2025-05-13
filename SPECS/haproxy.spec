@@ -8,7 +8,7 @@
 
 Name:           haproxy
 Version:        2.4.22
-Release:        3%{?dist}.1
+Release:        4%{?dist}
 Summary:        HAProxy reverse proxy for high availability environments
 
 License:        GPLv2+
@@ -29,8 +29,8 @@ Patch3: RHEL-18169_h2-reject-special-char-from-pseudo-path-header.patch
 Patch4: RHEL-18169_http-add-new-function-http_path_has_forbidden_char.patch
 Patch5: RHEL-18169_ist-add-new-function-ist_find_range.patch
 Patch6: RHEL-18169_regtest-add-accept-invalid-http-request.patch
-Patch7: RHEL-72955-always-clear-retry-flags-to-avoid-cpu-usage-spikes.patch
-Patch8: RHEL-72952-fix-unable-to-load-certificate-chain-from-file-issue.patch
+Patch7: RHEL-71925-always-clear-retry-flags-to-avoid-cpu-usage-spikes.patch
+Patch8: RHEL-68780-fix-unable-to-load-certificate-chain-from-file-issue.patch
 
 BuildRequires:  gcc
 BuildRequires:  lua-devel
@@ -151,11 +151,11 @@ done
 %{_sysusersdir}/%{name}.conf
 
 %changelog
-* Tue Jan  7 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 2.4.22-3.1
+* Mon Jan  6 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 2.4.22-4
 - Always clear retry flags in read/write functions to avoid CPU
   usage spikes
 - Fix "unable to load certificate chain from file" issue
-  Resolves: RHEL-72955, RHEL-72952
+  Resolves: RHEL-71925, RHEL-68780
 
 * Tue Jan 23 2024 Ryan O'Hara <rohara@redhat.com> - 2.4.22-3
 - Reject "#" as part of URI path component (CVE-2023-45539, RHEL-18169)
