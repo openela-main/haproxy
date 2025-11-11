@@ -7,8 +7,8 @@
 %global _hardened_build 1
 
 Name:           haproxy
-Version:        2.4.22
-Release:        4%{?dist}
+Version:        2.8.14
+Release:        1%{?dist}
 Summary:        HAProxy reverse proxy for high availability environments
 
 License:        GPLv2+
@@ -21,16 +21,6 @@ Source3:        %{name}.logrotate
 Source4:        %{name}.sysconfig
 Source5:        %{name}.sysusers
 Source6:        halog.1
-
-Patch0:	RHEL-7736_http-reject-empty-content-length-header.patch
-Patch1: RHEL-18169_h1-reject-special-char-URI-path-component.patch
-Patch2: RHEL-18169_h2-pass-accept-invalid-http-request-request-parser.patch
-Patch3: RHEL-18169_h2-reject-special-char-from-pseudo-path-header.patch
-Patch4: RHEL-18169_http-add-new-function-http_path_has_forbidden_char.patch
-Patch5: RHEL-18169_ist-add-new-function-ist_find_range.patch
-Patch6: RHEL-18169_regtest-add-accept-invalid-http-request.patch
-Patch7: RHEL-71925-always-clear-retry-flags-to-avoid-cpu-usage-spikes.patch
-Patch8: RHEL-68780-fix-unable-to-load-certificate-chain-from-file-issue.patch
 
 BuildRequires:  gcc
 BuildRequires:  lua-devel
@@ -60,62 +50,48 @@ availability environments. Indeed, it can:
 
 %prep
 %setup -q
-%patch -P0 -p1
-%patch -P1 -p1
-%patch -P2 -p1
-%patch -P3 -p1
-%patch -P4 -p1
-%patch -P5 -p1
-%patch -P6 -p1
-%patch -P7 -p1
-%patch -P8 -p1
 
 %build
-regparm_opts=
-%ifarch %ix86 x86_64
-regparm_opts="USE_REGPARM=1"
-%endif
+make %{?_smp_mflags} CPU="generic" TARGET="linux-glibc" USE_OPENSSL=1 USE_PCRE2=1 USE_SLZ=1 USE_LUA=1 USE_CRYPT_H=1 USE_SYSTEMD=1 USE_LINUX_TPROXY=1 USE_GETADDRINFO=1 USE_PROMEX=1 ADDINC="%{build_cflags}" ADDLIB="%{build_ldflags}"
 
-%{__make} %{?_smp_mflags} CPU="generic" TARGET="linux-glibc" USE_OPENSSL=1 USE_PCRE2=1 USE_SLZ=1 USE_LUA=1 USE_CRYPT_H=1 USE_SYSTEMD=1 USE_LINUX_TPROXY=1 USE_GETADDRINFO=1 USE_PROMEX=1 ${regparm_opts} ADDINC="%{build_cflags}" ADDLIB="%{build_ldflags}"
-
-%{__make} admin/halog/halog ADDINC="%{build_cflags}" ADDLIB="%{build_ldflags}"
+make admin/halog/halog ADDINC="%{build_cflags}" ADDLIB="%{build_ldflags}"
 
 pushd admin/iprange
-%{__make} OPTIMIZE="%{build_cflags}" LDFLAGS="%{build_ldflags}"
+make OPTIMIZE="%{build_cflags}" LDFLAGS="%{build_ldflags}"
 popd
 
 %install
-%{__make} install-bin DESTDIR=%{buildroot} PREFIX=%{_prefix} TARGET="linux2628"
-%{__make} install-man DESTDIR=%{buildroot} PREFIX=%{_prefix}
+make install-bin DESTDIR=%{buildroot} PREFIX=%{_prefix} TARGET="linux2628"
+make install-man DESTDIR=%{buildroot} PREFIX=%{_prefix}
 
-%{__install} -p -D -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
-%{__install} -p -D -m 0644 %{SOURCE2} %{buildroot}%{haproxy_confdir}/%{name}.cfg
-%{__install} -p -D -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
-%{__install} -p -D -m 0644 %{SOURCE4} %{buildroot}%{_sysconfdir}/sysconfig/%{name}
-%{__install} -p -D -m 0644 %{SOURCE5} %{buildroot}%{_sysusersdir}/%{name}.conf
-%{__install} -p -D -m 0644 %{SOURCE6} %{buildroot}%{_mandir}/man1/halog.1
-%{__install} -d -m 0755 %{buildroot}%{haproxy_homedir}
-%{__install} -d -m 0755 %{buildroot}%{haproxy_datadir}
-%{__install} -d -m 0755 %{buildroot}%{haproxy_confdir}/conf.d
-%{__install} -d -m 0755 %{buildroot}%{_bindir}
-%{__install} -p -m 0755 ./admin/halog/halog %{buildroot}%{_bindir}/halog
-%{__install} -p -m 0755 ./admin/iprange/iprange %{buildroot}%{_bindir}/iprange
-%{__install} -p -m 0755 ./admin/iprange/ip6range %{buildroot}%{_bindir}/ip6range
+install -p -D -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
+install -p -D -m 0644 %{SOURCE2} %{buildroot}%{haproxy_confdir}/%{name}.cfg
+install -p -D -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
+install -p -D -m 0644 %{SOURCE4} %{buildroot}%{_sysconfdir}/sysconfig/%{name}
+install -p -D -m 0644 %{SOURCE5} %{buildroot}%{_sysusersdir}/%{name}.conf
+install -p -D -m 0644 %{SOURCE6} %{buildroot}%{_mandir}/man1/halog.1
+install -d -m 0755 %{buildroot}%{haproxy_homedir}
+install -d -m 0755 %{buildroot}%{haproxy_datadir}
+install -d -m 0755 %{buildroot}%{haproxy_confdir}/conf.d
+install -d -m 0755 %{buildroot}%{_bindir}
+install -p -m 0755 ./admin/halog/halog %{buildroot}%{_bindir}/halog
+install -p -m 0755 ./admin/iprange/iprange %{buildroot}%{_bindir}/iprange
+install -p -m 0755 ./admin/iprange/ip6range %{buildroot}%{_bindir}/ip6range
 
 for httpfile in $(find ./examples/errorfiles/ -type f) 
 do
-    %{__install} -p -m 0644 $httpfile %{buildroot}%{haproxy_datadir}
+    install -p -m 0644 $httpfile %{buildroot}%{haproxy_datadir}
 done
 
-%{__rm} -rf ./examples/errorfiles/
+rm -rf ./examples/errorfiles/
 
-find ./examples/* -type f ! -name "*.cfg" -exec %{__rm} -f "{}" \;
+find ./examples/* -type f ! -name "*.cfg" -exec rm -f "{}" \;
 
 for textfile in $(find ./ -type f -name '*.txt')
 do
-    %{__mv} $textfile $textfile.old
+    mv $textfile $textfile.old
     iconv --from-code ISO8859-1 --to-code UTF-8 --output $textfile $textfile.old
-    %{__rm} -f $textfile.old
+    rm -f $textfile.old
 done
 
 %pre
@@ -132,7 +108,7 @@ done
 
 %files
 %doc doc/* examples/*
-%doc CHANGELOG README ROADMAP VERSION
+%doc CHANGELOG README VERSION
 %license LICENSE
 %dir %{haproxy_homedir}
 %dir %{haproxy_confdir}
@@ -151,6 +127,10 @@ done
 %{_sysusersdir}/%{name}.conf
 
 %changelog
+* Mon Apr  7 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 2.8.14-1
+- Rebase to 2.8.14
+  Resolves: RHEL-74039
+
 * Mon Jan  6 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 2.4.22-4
 - Always clear retry flags in read/write functions to avoid CPU
   usage spikes
