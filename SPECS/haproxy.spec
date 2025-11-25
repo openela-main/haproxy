@@ -8,7 +8,7 @@
 
 Name:           haproxy
 Version:        3.0.5
-Release:        4%{?dist}
+Release:        4%{?dist}.1
 Summary:        HAProxy reverse proxy for high availability environments
 
 License:        GPL-2.0-or-later
@@ -21,6 +21,7 @@ Source3:        %{name}.logrotate
 Source4:        %{name}.sysconfig
 Source5:        %{name}.sysusers
 Source6:        halog.1
+Patch0:         RHEL-126652-CVE-2025-11230-fix-denial-of-service-vulnerability-in-mjson-library.patch
 
 BuildRequires:  gcc
 BuildRequires:  lua-devel
@@ -50,8 +51,9 @@ availability environments. Indeed, it can:
 
 %prep
 %setup -q
-%build
+%autopatch -p1
 
+%build
 make %{?_smp_mflags} CPU="generic" TARGET="linux-glibc" USE_OPENSSL=1 USE_PCRE2=1 USE_SLZ=1 USE_LUA=1 USE_CRYPT_H=1 USE_SYSTEMD=1 USE_LINUX_TPROXY=1 USE_GETADDRINFO=1 USE_PROMEX=1 DEFINE=-DMAX_SESS_STKCTR=12 ADDINC="%{build_cflags}" ADDLIB="%{build_ldflags}"
 
 make admin/halog/halog ADDINC="%{build_cflags}" ADDLIB="%{build_ldflags}"
@@ -127,6 +129,10 @@ done
 %{_sysusersdir}/%{name}.conf
 
 %changelog
+* Thu Nov  6 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 3.0.5-4.1
+- Fix denial of service vulnerability in mjson library (CVE-2025-11230)
+  Resolves: RHEL-126652
+
 * Wed Jan  8 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 3.0.5-4
 - Fix CVE-2024-53008
   Resolves: RHEL-69415
