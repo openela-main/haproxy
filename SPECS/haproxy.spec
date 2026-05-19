@@ -8,7 +8,7 @@
 
 Name:           haproxy
 Version:        3.0.5
-Release:        4%{?dist}.1
+Release:        6%{?dist}
 Summary:        HAProxy reverse proxy for high availability environments
 
 License:        GPL-2.0-or-later
@@ -21,7 +21,7 @@ Source3:        %{name}.logrotate
 Source4:        %{name}.sysconfig
 Source5:        %{name}.sysusers
 Source6:        halog.1
-Patch0:         RHEL-126652-CVE-2025-11230-fix-denial-of-service-vulnerability-in-mjson-library.patch
+Patch0:         RHEL-126653-CVE-2025-11230-fix-denial-of-service-vulnerability-in-mjson-library.patch
 
 BuildRequires:  gcc
 BuildRequires:  lua-devel
@@ -96,6 +96,9 @@ do
     rm -f $textfile.old
 done
 
+mkdir -p %{buildroot}%{_tmpfilesdir}
+echo "d /var/lib/haproxy 0755 root root - -" > %{buildroot}%{_tmpfilesdir}/%{name}.conf
+
 %pre
 %sysusers_create_compat %{SOURCE5}
 
@@ -127,11 +130,17 @@ done
 %{_bindir}/ip6range
 %{_mandir}/man1/*
 %{_sysusersdir}/%{name}.conf
+%{_tmpfilesdir}/%{name}.conf
 
 %changelog
-* Thu Nov  6 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 3.0.5-4.1
+* Thu Nov  6 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 3.0.5-6
 - Fix denial of service vulnerability in mjson library (CVE-2025-11230)
-  Resolves: RHEL-126652
+  Resolves: RHEL-126653
+
+* Mon Oct 20 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 3.0.5-5
+- Add tmpfiles.d file to make systemd-tmpfiles create/set correct
+  ownership/permissions of /var/lib/haproxy
+  Resolves: RHEL-120174
 
 * Wed Jan  8 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 3.0.5-4
 - Fix CVE-2024-53008
