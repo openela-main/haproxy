@@ -8,7 +8,7 @@
 
 Name:           haproxy
 Version:        3.0.5
-Release:        6%{?dist}
+Release:        6%{?dist}.1
 Summary:        HAProxy reverse proxy for high availability environments
 
 License:        GPL-2.0-or-later
@@ -22,6 +22,7 @@ Source4:        %{name}.sysconfig
 Source5:        %{name}.sysusers
 Source6:        halog.1
 Patch0:         RHEL-126653-CVE-2025-11230-fix-denial-of-service-vulnerability-in-mjson-library.patch
+Patch1:         RHEL-173335-peers-fix-OOB-heap-write-in-dictionary-cache-update.patch
 
 BuildRequires:  gcc
 BuildRequires:  lua-devel
@@ -133,6 +134,10 @@ echo "d /var/lib/haproxy 0755 root root - -" > %{buildroot}%{_tmpfilesdir}/%{nam
 %{_tmpfilesdir}/%{name}.conf
 
 %changelog
+* Wed May  6 2026 Oyvind Albrigtsen <oalbrigt@redhat.com> - 3.0.5-6.1
+- peers: fix OOB heap write in dictionary cache update
+  Resolves: RHEL-173335
+
 * Thu Nov  6 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 3.0.5-6
 - Fix denial of service vulnerability in mjson library (CVE-2025-11230)
   Resolves: RHEL-126653

@@ -1,0 +1,40 @@
+--- a/src/peers.c	2026-05-05 13:18:36.102513859 +0200
++++ b/src/peers.c	2026-05-05 13:24:14.627824221 +0200
+@@ -289,6 +289,10 @@
+ 	{ .mask = PEERS_EV_SESSREL,    .name = "sessrl",       .desc = "peer session releasing" },
+ #define PEERS_EV_PROTOERR        (1 << 6)
+ 	{ .mask = PEERS_EV_PROTOERR,   .name = "protoerr",     .desc = "protocol error" },
++#define PEERS_EV_SESS_IO       (1ULL << 7)
++	{ .mask = PEERS_EV_SESS_IO,      .name = "sess_io",        .desc = "peer session I/O" },
++#define PEERS_EV_PROTO_ERR     (1ULL << 8)
++	{ .mask = PEERS_EV_PROTO_ERR,    .name = "proto_error",    .desc = "protocol error" },
+ 	{ }
+ };
+ 
+@@ -400,7 +404,7 @@
+ 		}
+ 	}
+ 
+-	if (mask & (PEERS_EV_SESSREL|PEERS_EV_PROTOERR)) {
++	if (mask & (PEERS_EV_SESSREL|PEERS_EV_PROTO_ERR)) {
+ 		if (a2) {
+ 			const struct peer *peer = a2;
+ 			struct peers *peers = NULL;
+@@ -2005,13 +2009,12 @@
+ 			}
+ 
+ 			dc = p->dcache;
++			if (id > dc->max_entries) {
++				TRACE_ERROR("malformed update message: invalid dict value", PEERS_EV_SESS_IO|PEERS_EV_PROTOERR, appctx, p, st);
++				goto malformed_unlock;
++			}
+ 			if (*msg_cur == end) {
+ 				/* Dictionary entry key without value. */
+-				if (id > dc->max_entries) {
+-					TRACE_PROTO("malformed message", PEERS_EV_UPDTMSG,
+-					            NULL, p, NULL, &id);
+-					goto malformed_unlock;
+-				}
+ 				/* IDs sent over the network are numbered from 1. */
+ 				de = dc->rx[id - 1].de;
+ 			}
