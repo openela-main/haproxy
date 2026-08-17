@@ -8,7 +8,7 @@
 
 Name:           haproxy
 Version:        1.8.27
-Release:        5%{?dist}.1
+Release:        5%{?dist}.2
 Summary:        HAProxy reverse proxy for high availability environments
 
 Group:          System Environment/Daemons
@@ -32,6 +32,7 @@ Patch6:		CVE-2023-45539-add-istend-function.patch
 Patch7:		CVE-2023-45539-add-http_path_forbidden_char-function.patch
 Patch8:		CVE-2023-45539-pass-accept-invalid-http-request-parser.patch
 Patch9:		CVE-2023-45539-reject-chars-from-path-pseudo-header.patch
+Patch10:	CVE-2026-55204-hpack-tbl-add-null-check.patch
 
 BuildRequires:  lua-devel
 BuildRequires:  pcre-devel
@@ -71,6 +72,7 @@ availability environments. Indeed, it can:
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
+%patch10 -p1
 
 %build
 regparm_opts=
@@ -158,6 +160,10 @@ exit 0
 %{_mandir}/man1/*
 
 %changelog
+* Thu Jul 16 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 1.8.27-5.2
+- Fix NULL pointer dereference in hpack_dht_insert() (CVE-2026-55204,
+  RHEL-211083)
+
 * Thu Sep 05 2024 Ryan O'Hara <rohara@redhat.com> - 1.8.27-5.1
 - Reject "#" as part of URI path component (CVE-2023-45539, RHEL-18168)
 
