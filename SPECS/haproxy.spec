@@ -8,7 +8,7 @@
 
 Name:           haproxy
 Version:        2.8.14
-Release:        3%{?dist}
+Release:        3%{?dist}.2
 Summary:        HAProxy reverse proxy for high availability environments
 
 License:        GPLv2+
@@ -22,6 +22,10 @@ Source4:        %{name}.sysconfig
 Source5:        %{name}.sysusers
 Source6:        halog.1
 Patch0:         RHEL-126665-CVE-2025-11230-fix-denial-of-service-vulnerability-in-mjson-library.patch
+# https://github.com/haproxy/haproxy/commit/5985276735777634d8c85f1d73bb7764aab0d6dd
+Patch1:         RHEL-211062-CVE-2026-55203-fix-uint16_t-overflow-in-mux-fcgi.patch
+# https://github.com/haproxy/haproxy/commit/9a6d1fe3f00d86ab4ea6ea6ea0a5d48fc058a513.patch
+Patch2:         RHEL-211082-CVE-2026-55204-add-missing-NULL-check-after-hpack_dht_defrag.patch
 
 BuildRequires:  gcc
 BuildRequires:  lua-devel
@@ -133,6 +137,14 @@ echo "d /var/lib/haproxy 0755 root root - -" > %{buildroot}%{_tmpfilesdir}/%{nam
 %{_tmpfilesdir}/%{name}.conf
 
 %changelog
+* Thu Jul 16 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 2.8.14-3.2
+- Fix NULL pointer dereference in hpack_dht_insert() (CVE-2026-55204)
+  Resolves: RHEL-211082
+
+* Thu Jul 16 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 2.8.14-3.1
+- Fix uint16_t overflow in FCGI demux record length (CVE-2026-55203)
+  Resolves: RHEL-211062
+
 * Thu Nov  6 2025 Oyvind Albrigtsen <oalbrigt@redhat.com> - 2.8.14-3
 - Fix denial of service vulnerability in mjson library (CVE-2025-11230)
   Resolves: RHEL-126665
