@@ -8,7 +8,7 @@
 
 Name:           haproxy
 Version:        3.0.5
-Release:        6%{?dist}.1
+Release:        6%{?dist}.2
 Summary:        HAProxy reverse proxy for high availability environments
 
 License:        GPL-2.0-or-later
@@ -23,6 +23,8 @@ Source5:        %{name}.sysusers
 Source6:        halog.1
 Patch0:         RHEL-126653-CVE-2025-11230-fix-denial-of-service-vulnerability-in-mjson-library.patch
 Patch1:         RHEL-173335-peers-fix-OOB-heap-write-in-dictionary-cache-update.patch
+Patch2:         RHEL-211068-CVE-2026-55203-fix-uint16_t-overflow-in-mux-fcgi.patch
+Patch3:         RHEL-211081-CVE-2026-55204-add-missing-NULL-check-after-hpack_dht_defrag.patch
 
 BuildRequires:  gcc
 BuildRequires:  lua-devel
@@ -52,7 +54,10 @@ availability environments. Indeed, it can:
 
 %prep
 %setup -q
-%autopatch -p1
+%patch -p1 -P 0
+%patch -p1 -P 1
+%patch -p1 -P 2
+%patch -p1 -P 3
 
 %build
 make %{?_smp_mflags} CPU="generic" TARGET="linux-glibc" USE_OPENSSL=1 USE_PCRE2=1 USE_SLZ=1 USE_LUA=1 USE_CRYPT_H=1 USE_SYSTEMD=1 USE_LINUX_TPROXY=1 USE_GETADDRINFO=1 USE_PROMEX=1 DEFINE=-DMAX_SESS_STKCTR=12 ADDINC="%{build_cflags}" ADDLIB="%{build_ldflags}"
@@ -134,6 +139,12 @@ echo "d /var/lib/haproxy 0755 root root - -" > %{buildroot}%{_tmpfilesdir}/%{nam
 %{_tmpfilesdir}/%{name}.conf
 
 %changelog
+* Mon Aug 10 2026 Oyvind Albrigtsen <oalbrigt@redhat.com> - 3.0.5-6.2
+- Fix uint16_t overflow in FCGI demux record length (CVE-2026-55203)
+  Resolves: RHEL-211068
+- Fix NULL pointer dereference in hpack_dht_insert() (CVE-2026-55204)
+  Resolves: RHEL-211081
+
 * Wed May  6 2026 Oyvind Albrigtsen <oalbrigt@redhat.com> - 3.0.5-6.1
 - peers: fix OOB heap write in dictionary cache update
   Resolves: RHEL-173335
